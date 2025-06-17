@@ -1,0 +1,32 @@
+Auflistung der Ordnerpfade für Volume PN-GISA-107122
+Volumeseriennummer : 52BE-E4A9
+C:.
+¦   dateistruktur.txt
+¦   game.py
+¦   generate_background.py
+¦   main.py
+¦   obstacles.py
+¦   player.py
+¦   powerups.py
+¦   start_screen.py
+¦   
++---backgrounds
+¦       start_screen.png
+¦       
++---sounds
+¦       bg_music.mp3
+¦       
++---sprites
+¦       enemy1.png
+¦       enemy2.png
+¦       enemy3.png
+¦       enemy4.png
+¦       player.png
+¦       
++---__pycache__
+        game.cpython-313.pyc
+        obstacles.cpython-313.pyc
+        player.cpython-313.pyc
+        powerups.cpython-313.pyc
+        start_screen.cpython-313.pyc
+        
