@@ -1,38 +1,55 @@
+# start_screen.py
 import pygame
 import sys
 import os
+from config import SCREEN_WIDTH, SCREEN_HEIGHT
 from game import Game
+from highscore_viewer import HighScoreViewer
+from skin_screen import SkinScreen
 
 class StartScreen:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((800, 600))
+        # Fester Modus 800×600
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Super Mario Game – START")
 
-        # Hintergrund
+        # Hintergrund laden oder Fallback
         bg_path = os.path.join("backgrounds", "start_screen.png")
         if os.path.exists(bg_path):
-            self.background = pygame.image.load(bg_path).convert()
+            bg = pygame.image.load(bg_path).convert()
+            self.background = pygame.transform.scale(bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
         else:
-            # Fallback: einfache Farbe
-            self.background = pygame.Surface((800, 600))
+            self.background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
             self.background.fill((0, 100, 255))
 
-        # Start-Button
-        btn_path = os.path.join("sprites", "start_button.png")
-        if os.path.exists(btn_path):
-            self.button_image = pygame.image.load(btn_path).convert_alpha()
-        else:
-            # Fallback: einfacher Rechteck-Button
-            self.button_image = pygame.Surface((200, 80), pygame.SRCALPHA)
-            self.button_image.fill((50, 150, 250))
-            font = pygame.font.SysFont(None, 48)
-            txt = font.render("START", True, (255,255,255))
-            txt_r = txt.get_rect(center=(100,40))
-            self.button_image.blit(txt, txt_r)
+        # Fonts
+        self.title_font = pygame.font.SysFont(None, 72)
+        self.btn_font   = pygame.font.SysFont(None, 48)
 
-        # Position des Buttons (zentriert)
-        self.button_rect = self.button_image.get_rect(center=(400, 350))
+        # Center-Koordinaten für Buttons
+        cx, cy = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+
+        # "SPIELEN"-Button
+        self.start_img = pygame.Surface((200, 80), pygame.SRCALPHA)
+        self.start_img.fill((50, 150, 250))
+        txt = self.btn_font.render("SPIELEN", True, (255, 255, 255))
+        self.start_img.blit(txt, txt.get_rect(center=(100, 40)))
+        self.start_rect = self.start_img.get_rect(center=(cx, cy - 70))
+
+        # "RANGLISTE"-Button
+        self.hs_img = pygame.Surface((200, 80), pygame.SRCALPHA)
+        self.hs_img.fill((150, 150, 50))
+        txt2 = self.btn_font.render("RANGLISTE", True, (255, 255, 255))
+        self.hs_img.blit(txt2, txt2.get_rect(center=(100, 40)))
+        self.hs_rect = self.hs_img.get_rect(center=(cx, cy + 10))
+
+        # "SKINS"-Button
+        self.skin_img = pygame.Surface((200, 80), pygame.SRCALPHA)
+        self.skin_img.fill((100, 150, 100))
+        txt3 = self.btn_font.render("SKINS", True, (255, 255, 255))
+        self.skin_img.blit(txt3, txt3.get_rect(center=(100, 40)))
+        self.skin_rect = self.skin_img.get_rect(center=(cx, cy + 90))
 
     def run(self):
         clock = pygame.time.Clock()
@@ -42,27 +59,58 @@ class StartScreen:
                     pygame.quit()
                     sys.exit()
 
-                # Starte per Enter
+                # ESC to quit
+                if ev.type == pygame.KEYDOWN and ev.key == pygame.K_ESCAPE:
+                    return 'QUIT'
+
+                # ENTER to start game
                 if ev.type == pygame.KEYDOWN and ev.key == pygame.K_RETURN:
                     return Game()
 
-                # Starte per Mausklick auf den Button
+                # Mouse clicks
                 if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-                    if self.button_rect.collidepoint(ev.pos):
+                    mx, my = ev.pos
+                    if self.start_rect.collidepoint(mx, my):
                         return Game()
+                    if self.hs_rect.collidepoint(mx, my):
+                        HighScoreViewer(self.screen).run()
+                        pygame.event.clear()
+                        self.screen.blit(self.background, (0, 0))
+                        pygame.display.flip()
+                        pygame.time.wait(100)
+                        break
+                    if self.skin_rect.collidepoint(mx, my):
+                        SkinScreen(self.screen).run()
+                        pygame.event.clear()
+                        self.screen.blit(self.background, (0, 0))
+                        pygame.display.flip()
+                        pygame.time.wait(100)
+                        break
 
-            # Zeichnen
-            self.screen.blit(self.background, (0,0))
+            # Draw background and UI
+            self.screen.blit(self.background, (0, 0))
 
-            # optional: Hover‐Effekt
+            # Title in der Mitte
+            title_surf = self.title_font.render("Jump Champion", True, (255, 0, 0))
+            title_x = SCREEN_WIDTH // 2 - title_surf.get_width() // 2
+            self.screen.blit(title_surf, (title_x, 50))
+
+            # Buttons with hover
             mx, my = pygame.mouse.get_pos()
-            if self.button_rect.collidepoint((mx,my)):
-                # hellere Version
-                btn = pygame.transform.scale(self.button_image, (210, 88))
-                br = btn.get_rect(center=self.button_rect.center)
-                self.screen.blit(btn, br.topleft)
-            else:
-                self.screen.blit(self.button_image, self.button_rect.topleft)
+            for img, rect in [
+                (self.start_img, self.start_rect),
+                (self.hs_img,    self.hs_rect),
+                (self.skin_img,  self.skin_rect)
+            ]:
+                if rect.collidepoint(mx, my):
+                    bigger = pygame.transform.scale(
+                        img,
+                        (int(img.get_width() * 1.05), int(img.get_height() * 1.05))
+                    )
+                    br = bigger.get_rect(center=rect.center)
+                    self.screen.blit(bigger, br.topleft)
+                else:
+                    self.screen.blit(img, rect.topleft)
 
             pygame.display.flip()
             clock.tick(60)

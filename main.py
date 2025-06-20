@@ -1,18 +1,32 @@
+# main.py
 import pygame
 import sys
+import os
+
+# Debug: aktuelles Arbeitsverzeichnis anzeigen
+print(">>> Starte Spiel aus:", os.getcwd())
+# Debug: sprites‑Ordner Inahlt auflisten, falls vorhanden
+sprites_dir = os.path.join(os.getcwd(), "sprites")
+if os.path.exists(sprites_dir):
+    print(">>> Sprites‑Ordner gefunden. Inhalt:", os.listdir(sprites_dir))
+else:
+    print(">>> Sprites‑Ordner NICHT gefunden unter", sprites_dir)
+
 from start_screen import StartScreen
 
 def main():
+    # Pygame initialisieren
     pygame.init()
     pygame.mixer.init()
 
-    # Endlosschleife: wir kehren nach Game-Over hierher zurück
+    # Endlosschleife: Start‑Screen → Game → Restart/Quit
     while True:
         start = StartScreen()
         game  = start.run()
-        game.run()
-        # wenn game.run() endet (Game-Over und kein „Restart“ per R),
-        # landen wir hier und starten von vorn
+        action = game.run()
+
+        if action == 'QUIT':
+            break
 
     pygame.quit()
     sys.exit()
